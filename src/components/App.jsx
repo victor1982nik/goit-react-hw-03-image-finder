@@ -1,7 +1,8 @@
 import { Component } from 'react';
-import { FaSearch } from 'react-icons/fa';
 import { fetchData } from './Api/fetchData';
+import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
+import { SearchBar } from './SearchBar/SearchBar';
 
 export class App extends Component {
   state = {
@@ -23,7 +24,7 @@ export class App extends Component {
     this.setState({ isLoading: true });
     try {
       const response = await fetchData(this.state.filter);
-      console.log(response);
+      // console.log(response);
       this.setState({ pictures: response.data.hits });
     } catch (error) {
       this.setState({ error: "Что-то пошло не так" });
@@ -32,8 +33,13 @@ export class App extends Component {
     }
   };
 
+  handleModal = bigPicture => {
+    this.setState({ picture: bigPicture });
+    console.log(bigPicture);
+  }
+
   render() {
-    const { pictures, isLoading } = this.state;
+    const { pictures, isLoading, filter, picture} = this.state;
     let options = [];
     if (pictures) {
       options = pictures.map(item => ({
@@ -45,28 +51,16 @@ export class App extends Component {
     }
 
     return (
-      <>        
-        <form onSubmit={this.handlerFormSubmit}>
-          <button type="submit">
-            <FaSearch />
-          </button>
-          <input
-            type="filter"
-            name="filter"
-            value={this.state.filter}
-            onChange={this.handleFilter}
-          ></input>
-        </form>
+      <>
+        <SearchBar
+          filter={filter}
+          onSubmit={this.handlerFormSubmit}
+          onChange={this.handleFilter}
+        ></SearchBar>
+
         {isLoading && <Loader />}
-        <ul style={{ display: 'flex' }}>
-          {options.map(item => {
-            return (
-              <li key={item.id}>
-                <img src={item.small} alt="" />
-              </li>
-            );
-          })}
-        </ul>
+        <ImageGallery data={options} onClick={this.handleModal}></ImageGallery>
+        {picture && <div>Modal</div>}
       </>
     );
   }
