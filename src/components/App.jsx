@@ -1,9 +1,7 @@
 import { Component } from 'react';
 import { FaSearch } from 'react-icons/fa';
-import axios from 'axios';
-
-const API_KEY = '30096980-3a3c0320a6f5f515df3804209';
-const URL = 'https://pixabay.com/api';
+import { fetchData } from './Api/fetchData';
+import { Loader } from './Loader/Loader';
 
 export class App extends Component {
   state = {
@@ -11,39 +9,31 @@ export class App extends Component {
     picture: null,
     error: null,
     filter: '',
+    isLoading: false,
   };
 
-  async componentDidMount() {
-    // try {
-    //   const response = await axios.get(
-    //     `${URL}/?key=${API_KEY}&q=blue+flowers&image_type=photo`
-    //   );
-    //   this.setState({ pictures: response.data.hits });
-    // } catch (error) {
-    //   this.setState({ error: error.message });
-    // }
-  }
+  async componentDidMount() {      }
 
   handleFilter = e => {
     this.setState({ filter: e.target.value });
   };
 
   handlerFormSubmit = async e => {
-    e.preventDefault();
-    //console.log(this.state.filter);
+    e.preventDefault();    
+    this.setState({ isLoading: true });
     try {
-      const response = await axios.get(
-        `${URL}/?key=${API_KEY}&q=${this.state.filter}&page=1&image_type=photo&orientation=horizontal&per_page=12`
-      );
-      //console.log(response);
+      const response = await fetchData(this.state.filter);
+      console.log(response);
       this.setState({ pictures: response.data.hits });
     } catch (error) {
-      this.setState({ error: error.message });
+      this.setState({ error: "Что-то пошло не так" });
+    } finally  {
+      this.setState({ isLoading: false });
     }
   };
 
   render() {
-    const { pictures } = this.state;
+    const { pictures, isLoading } = this.state;
     let options = [];
     if (pictures) {
       options = pictures.map(item => ({
@@ -55,8 +45,7 @@ export class App extends Component {
     }
 
     return (
-      <>
-        <div>React template</div>
+      <>        
         <form onSubmit={this.handlerFormSubmit}>
           <button type="submit">
             <FaSearch />
@@ -68,11 +57,12 @@ export class App extends Component {
             onChange={this.handleFilter}
           ></input>
         </form>
+        {isLoading && <Loader />}
         <ul style={{ display: 'flex' }}>
           {options.map(item => {
             return (
               <li key={item.id}>
-                <img src={item.small} />
+                <img src={item.small} alt="" />
               </li>
             );
           })}
