@@ -1,15 +1,28 @@
 import PropTypes from 'prop-types';
+import { List } from './ImageGallery.styled';
+import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 
 export const ImageGallery = ({ data, onClick }) => {
   return (
-    <ul style={{ display: 'flex' }}>
+    <List>
       {data.map(item => {
-        return (
-          <li key={item.id}>
-            <img src={item.small} alt="" width="150px" onClick={() => onClick(item.big)} />            
-          </li>
-        );
+        return <ImageGalleryItem key={item.id} item={item} onClick={onClick} />;
       })}
-    </ul>
+    </List>
   );
 };
+
+ImageGallery.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      small: PropTypes.string,
+      big: PropTypes.string,
+      key: PropTypes.string,
+    })
+  ),
+  onClick: PropTypes.func,
+};
+
+// <ListItem key={item.id}>
+//   <Image src={item.small} alt="" onClick={() => onClick(item.big)} />
+// </ListItem>
