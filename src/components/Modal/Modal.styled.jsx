@@ -14,8 +14,8 @@ export const Overlay = styled.div`
 `;
 
 export const ModalWindow = styled.div`
-  width: calc(100vw - 48px);
-  height: calc(100vh - 24px);
+  width: calc(100vw - 144px);
+  height: calc(100vh - 72px);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,20 +1,23 @@
 import PropTypes from 'prop-types';
 import { FaSearch } from 'react-icons/fa';
-import { BtnLabel, Button, Form, Input, Searchbar } from './SearchBar.styled';
+import { Button, Form, Input, Searchbar } from './SearchBar.styled';
 
 export const SearchBar = ({ filter, onSubmit, onChange }) => {
   //console.log("filter", filter,"OnSubmit", onSubmit, "onChange", onChange);
   return (
     <Searchbar>
       <Form onClick={onSubmit}>
-        <Button>
-          <BtnLabel>
-            <FaSearch />
-          </BtnLabel>
+        <Button aria-label="search button">
+          {/* <BtnLabel> */}
+          <FaSearch />
+          {/* </BtnLabel> */}
         </Button>
         <Input
           type="text"
           autoComplete="off"
+          pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+          title="May contain only letters, apostrophe, dash and spaces."
+          required
           autoFocus
           placeholder="Search images and photos"
           onChange={onChange}

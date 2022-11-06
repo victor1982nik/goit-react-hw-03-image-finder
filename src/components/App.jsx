@@ -1,5 +1,7 @@
 import { Component } from 'react';
 import { fetchData } from './Api/fetchData';
+import { Box } from './App.styled';
+import { BtnLoadMore } from './Button/BtnLoadMore';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
@@ -12,9 +14,9 @@ export class App extends Component {
     error: null,
     filter: '',
     isLoading: false,
+    total: null,
+    page: 1,
   };
-
-  async componentDidMount() {}
 
   handleFilter = e => {
     this.setState({ filter: e.target.value });
@@ -22,17 +24,23 @@ export class App extends Component {
 
   handlerFormSubmit = async e => {
     e.preventDefault();
-    // if (this.state.filter === '') {
-    //   this.setState({ error: 'Что-то пошло не так' });
-    //   return;
-    // }
+    const { filter, page } = this.state;
+    if (this.state.filter === '') {
+      this.setState({ error: 'По вашему запросу ничего не найдено' });
+      return;
+    }
     this.setState({ isLoading: true });
     try {
-      const response = await fetchData(this.state.filter);
+      const response = await fetchData(filter, page);
 
-      this.setState({ pictures: response.data.hits });
+      this.setState({
+        pictures: response.data.hits,
+        total: response.data.total,
+        page: 1,
+        error: null,
+      });
     } catch (error) {
-      this.setState({ error: 'Что-то пошло не так' });
+      this.setState({ error: 'Что-то пошло не так, перезагрузите страницу' });
     } finally {
       this.setState({ isLoading: false });
     }
@@ -40,33 +48,61 @@ export class App extends Component {
 
   handleModal = bigPicture => {
     this.setState({ picture: bigPicture });
-    //console.log(bigPicture);
   };
 
-  render() {
-    const { pictures, isLoading, filter, picture, error } = this.state;
-    let options = [];
+  closeModal = () => {
+    this.setState({ picture: null });
+  };
+
+  onClickLoadMore = async e => {
+    const { filter, page } = this.state;
+    this.setState({ isLoading: true });
+    try {
+      const response = await fetchData(filter, page + 1);
+
+      this.setState(prevState => {
+        return {
+          pictures: [...prevState.pictures, ...response.data.hits],
+          page: page + 1,
+        };
+      });
+    } catch (error) {
+      this.setState({ error: 'Что-то пошло не так, перезагрузите страницу' });
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  };
+
+  createRenderList() {
+    const { pictures } = this.state;
     if (pictures) {
-      options = pictures.map(item => ({
+      return pictures.map(item => ({
         id: item.id,
         small: item.webformatURL,
         big: item.largeImageURL,
       }));
-      //console.log('options', options);
     }
+  }
+
+  render() {
+    const { pictures, isLoading, filter, picture, error, total } = this.state;
+    let options = this.createRenderList();
 
     return (
-      <>
+      <Box>
         <SearchBar
           filter={filter}
           onSubmit={this.handlerFormSubmit}
           onChange={this.handleFilter}
         ></SearchBar>
-        {error && <div>{this.state.error}</div>}
+        {error && <div>{error}</div>}
+        {options && <ImageGallery data={options} onClick={this.handleModal} />}
         {isLoading && <Loader />}
-        <ImageGallery data={options} onClick={this.handleModal}></ImageGallery>
-        {picture && <Modal picture={picture}></Modal>}
-      </>
+        {pictures.length > 0 && pictures.length < total && (
+          <BtnLoadMore text="Load More" onClick={this.onClickLoadMore} />
+        )}
+        {picture && <Modal picture={picture} onClose={this.closeModal}></Modal>}
+      </Box>
     );
   }
 }
