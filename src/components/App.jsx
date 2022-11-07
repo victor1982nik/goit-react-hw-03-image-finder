@@ -28,7 +28,7 @@ export class App extends Component {
         if (!response.data.hits.length) {
           return ;
         }
-        console.log(page, prevState.pictures, response.data.hits);
+        //console.log(page, prevState.pictures, response.data.hits);
         //debugger;
         //     if(!response) {return}
         this.setState(prevState => { 
@@ -50,7 +50,7 @@ export class App extends Component {
 
   handlerFormSubmit = e => {
     e.preventDefault();
-    debugger;
+    
     const { input, filter } = this.state;
     if (input === filter) {
       return;
