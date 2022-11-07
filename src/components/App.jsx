@@ -19,23 +19,28 @@ export class App extends Component {
     input: '',
   };
 
-  async componentDidUpdate(_, prevState) {    
-    const {filter, page}  = this.state;   
+  async componentDidUpdate(_, prevState) {
+    const { filter, page } = this.state;
     if (prevState.page !== page || prevState.filter !== filter) {
       try {
         this.setState({ isLoading: true });
         const response = await fetchData(filter, page);
-       console.log(page, prevState.pictures, response.data.hits);
-  //     if(!response) {return}
-       this.setState({
-         pictures: [...prevState.pictures, ...response.data.hits],         
-         total: response.data.total,  
-       });
-     } catch (error) {
-       this.setState({ error: 'Что-то пошло не так, перезагрузите страницу' });
-     } finally {
-       this.setState({ isLoading: false });
-     }
+        if (!response.data.hits.length) {
+          return ;
+        }
+        console.log(page, prevState.pictures, response.data.hits);
+        //debugger;
+        //     if(!response) {return}
+        this.setState(prevState => { 
+          return {
+          pictures: [...prevState.pictures, ...response.data.hits],
+          total: response.data.total,
+      }});
+      } catch (error) {
+        this.setState({ error: 'Что-то пошло не так, перезагрузите страницу' });
+      } finally {
+        this.setState({ isLoading: false });
+      }
     }
   }
 
@@ -45,19 +50,18 @@ export class App extends Component {
 
   handlerFormSubmit = e => {
     e.preventDefault();
-   // debugger;
-     const { input } = this.state;
-        if (this.state.input === this.state.filter) {
-          return;
-        }
-    
-    this.setState({ 
+    debugger;
+    const { input, filter } = this.state;
+    if (input === filter) {
+      return;
+    }
+
+    this.setState({
       filter: input,
-      page: 1,
       pictures: [],
-      total: null
-     });       
-   };
+      page: 1,
+    });
+  };
 
   handleModal = bigPicture => {
     this.setState({ picture: bigPicture });
@@ -67,11 +71,12 @@ export class App extends Component {
     this.setState({ picture: null });
   };
 
-  onClickLoadMore = async e => {    
-    this.setState(prevState => { 
-      return {      
-      page: prevState.page + 1,
-    }});    
+  onClickLoadMore = async e => {
+    this.setState(prevState => {
+      return {
+        page: prevState.page + 1,
+      };
+    });
   };
 
   createRenderList() {
