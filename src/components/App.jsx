@@ -16,35 +16,48 @@ export class App extends Component {
     isLoading: false,
     total: null,
     page: 1,
+    input: '',
   };
 
-  handleFilter = e => {
-    this.setState({ filter: e.target.value });
+  async componentDidUpdate(_, prevState) {    
+    const {filter, page}  = this.state;   
+    if (prevState.page !== page || prevState.filter !== filter) {
+      try {
+        this.setState({ isLoading: true });
+        const response = await fetchData(filter, page);
+       console.log(page, prevState.pictures, response.data.hits);
+  //     if(!response) {return}
+       this.setState({
+         pictures: [...prevState.pictures, ...response.data.hits],         
+         total: response.data.total,  
+       });
+     } catch (error) {
+       this.setState({ error: 'Что-то пошло не так, перезагрузите страницу' });
+     } finally {
+       this.setState({ isLoading: false });
+     }
+    }
+  }
+
+  handleInput = e => {
+    this.setState({ input: e.target.value });
   };
 
-  handlerFormSubmit = async e => {
+  handlerFormSubmit = e => {
     e.preventDefault();
-    const { filter, page } = this.state;
-    if (this.state.filter === '') {
-      this.setState({ error: 'По вашему запросу ничего не найдено' });
-      return;
-    }
-    this.setState({ isLoading: true });
-    try {
-      const response = await fetchData(filter, page);
-
-      this.setState({
-        pictures: response.data.hits,
-        total: response.data.total,
-        page: 1,
-        error: null,
-      });
-    } catch (error) {
-      this.setState({ error: 'Что-то пошло не так, перезагрузите страницу' });
-    } finally {
-      this.setState({ isLoading: false });
-    }
-  };
+   // debugger;
+     const { input } = this.state;
+        if (this.state.input === this.state.filter) {
+          return;
+        }
+    
+    this.setState({ 
+      filter: input,
+      page: 1,
+      pictures: [],
+      total: null
+     });       
+   };
 
   handleModal = bigPicture => {
     this.setState({ picture: bigPicture });
@@ -54,23 +67,11 @@ export class App extends Component {
     this.setState({ picture: null });
   };
 
-  onClickLoadMore = async e => {
-    const { filter, page } = this.state;
-    this.setState({ isLoading: true });
-    try {
-      const response = await fetchData(filter, page + 1);
-
-      this.setState(prevState => {
-        return {
-          pictures: [...prevState.pictures, ...response.data.hits],
-          page: page + 1,
-        };
-      });
-    } catch (error) {
-      this.setState({ error: 'Что-то пошло не так, перезагрузите страницу' });
-    } finally {
-      this.setState({ isLoading: false });
-    }
+  onClickLoadMore = async e => {    
+    this.setState(prevState => { 
+      return {      
+      page: prevState.page + 1,
+    }});    
   };
 
   createRenderList() {
@@ -85,15 +86,15 @@ export class App extends Component {
   }
 
   render() {
-    const { pictures, isLoading, filter, picture, error, total } = this.state;
+    const { pictures, isLoading, input, picture, error, total } = this.state;
     let options = this.createRenderList();
 
     return (
       <Box>
         <SearchBar
-          filter={filter}
+          inputValue={input}
           onSubmit={this.handlerFormSubmit}
-          onChange={this.handleFilter}
+          onChange={this.handleInput}
         ></SearchBar>
         {error && <div>{error}</div>}
         {options && <ImageGallery data={options} onClick={this.handleModal} />}
